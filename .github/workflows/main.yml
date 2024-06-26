@@ -1,0 +1,76 @@
+name: Build and Patch Minecraft PE Library
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf default-jre wget unzip zipalign apksigner
+
+      - name: Install apktool
+        run: |
+          wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.6.1.jar -O apktool.jar
+          echo '#!/bin/bash\njava -jar $(pwd)/apktool.jar "$@"' > apktool
+          chmod +x apktool
+          sudo mv apktool /usr/local/bin/
+
+      - name: Download Minecraft APK
+        run: |
+          # Contoh untuk mengunduh APK dari URL atau sumber lainnya
+          # Jika APK sudah ada dalam repo, bisa di-skip atau diubah perintah ini
+          wget -O minecraft.apk http://example.com/path/to/minecraft.apk
+
+      - name: Extract APK
+        run: |
+          # Ekstrak APK menggunakan apktool
+          apktool d minecraft.apk -o extracted
+
+      - name: Find and modify libminecraftpe.so
+        run: |
+          # Temukan libminecraftpe.so dan modifikasi menggunakan patchelf
+          find extracted -name "libminecraftpe.so" -exec patchelf --add-needed libmaterialbinloader-arm64.so {} \;
+
+      - name: Verify modification
+        run: |
+          # Verifikasi bahwa library telah dimodifikasi dengan benar
+          find extracted -name "libminecraftpe.so" -exec patchelf --print-needed {} \;
+
+      - name: Rebuild APK
+        run: |
+          # Rakitan ulang APK menggunakan apktool
+          apktool b extracted -o modified-minecraft.apk
+
+      - name: Sign the APK
+        run: |
+          # Generate keystore for signing the APK (or use an existing keystore)
+          keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias -storepass password -keypass password -dname "CN=Example, OU=Example, O=Example, L=Example, S=Example, C=US"
+          # Sign the APK
+          apksigner sign --ks my-release-key.jks --ks-key-alias my-alias --ks-pass pass:password --key-pass pass:password modified-minecraft.apk
+
+      - name: Verify the signed APK
+        run: |
+          # Verify the signed APK
+          apksigner verify modified-minecraft.apk
+
+      - name: Align the APK
+        run: |
+          # Align the APK for optimization
+          zipalign -v 4 modified-minecraft.apk aligned-minecraft.apk
+
+      - name: Upload modified APK as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: modified-minecraft-apk
+          path: aligned-minecraft.apk
