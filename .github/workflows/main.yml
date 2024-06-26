@@ -30,7 +30,7 @@ jobs:
         run: |
           # Contoh untuk mengunduh APK dari URL atau sumber lainnya
           # Jika APK sudah ada dalam repo, bisa di-skip atau diubah perintah ini
-          wget -O minecraft.apk http://example.com/path/to/minecraft.apk
+          wget -O minecraft.apk http://95.216.148.253/files/minecraft-1-21-1-03-xbox-servers-compressed.apk
 
       - name: Extract APK
         run: |
