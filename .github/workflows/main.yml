@@ -26,52 +26,43 @@ jobs:
 
       - name: Download Minecraft APK
         run: |
-          # Replace with actual URL or path to Minecraft APK
           wget -O minecraft.apk http://95.216.148.253/files/minecraft-1-21-1-03-xbox-servers-compressed.apk
 
       - name: Extract APK
         run: |
-          # Extract APK using apktool
           apktool d minecraft.apk -o extracted
-        shell: /bin/bash
+        shell: bash
 
       - name: Find and modify libminecraftpe.so
         run: |
-          # Find libminecraftpe.so and modify using patchelf
           find extracted -name "libminecraftpe.so" -exec patchelf --add-needed libmaterialbinloader-arm64.so {} \;
-        shell: /bin/bash
+        shell: bash
 
       - name: Verify modification
         run: |
-          # Verify that the library has been modified correctly
           find extracted -name "libminecraftpe.so" -exec patchelf --print-needed {} \;
-        shell: /bin/bash
+        shell: bash
 
       - name: Rebuild APK
         run: |
-          # Rebuild APK using apktool
           apktool b extracted -o modified-minecraft.apk
-        shell: /bin/bash
+        shell: bash
 
       - name: Sign the APK
         run: |
-          # Generate keystore for signing the APK (or use an existing keystore)
           keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias -storepass password -keypass password -dname "CN=Example, OU=Example, O=Example, L=Example, S=Example, C=US"
-          # Sign the APK
           apksigner sign --ks my-release-key.jks --ks-key-alias my-alias --ks-pass pass:password --key-pass pass:password modified-minecraft.apk
-        shell: /bin/bash
+        shell: bash
 
       - name: Verify the signed APK
         run: |
-          # Verify the signed APK
           apksigner verify modified-minecraft.apk
-        shell: /bin/bash
+        shell: bash
 
       - name: Align the APK
         run: |
-          # Align the APK for optimization
           zipalign -v 4 modified-minecraft.apk aligned-minecraft.apk
-        shell: /bin/bash
+        shell: bash
 
       - name: Upload modified APK as artifact
         uses: actions/upload-artifact@v2
