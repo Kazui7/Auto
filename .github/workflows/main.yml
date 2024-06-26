@@ -14,15 +14,20 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y default-jre wget unzip zipalign apksigner
+          sudo apt-get install -y wget unzip zipalign apksigner openjdk-8-jre
+
+      - name: Set up Java 8 environment
+        run: |
+          export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+          export PATH=$JAVA_HOME/bin:$PATH
 
       - name: Install apktool
         run: |
-          # Download and install apktool
           wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.6.1.jar -O apktool.jar
           echo '#!/bin/bash\njava -jar $(pwd)/apktool.jar "$@"' > apktool
           chmod +x apktool
           sudo mv apktool /usr/local/bin/
+        shell: bash
 
       - name: Download Minecraft APK
         run: |
