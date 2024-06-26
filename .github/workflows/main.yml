@@ -14,10 +14,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y patchelf default-jre wget unzip zipalign apksigner
+          sudo apt-get install -y default-jre wget unzip zipalign apksigner
 
       - name: Install apktool
         run: |
+          # Download and install apktool
           wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.6.1.jar -O apktool.jar
           echo '#!/bin/bash\njava -jar $(pwd)/apktool.jar "$@"' > apktool
           chmod +x apktool
@@ -25,29 +26,32 @@ jobs:
 
       - name: Download Minecraft APK
         run: |
-          # Contoh untuk mengunduh APK dari URL atau sumber lainnya
-          # Jika APK sudah ada dalam repo, bisa di-skip atau diubah perintah ini
-          wget -O Minecraft.apk https://drive.usercontent.google.com/download?id=1dENkfEnkCzfw9YOAl1hcOJCEfgTMlUcd&export=download&authuser=0
+          # Replace with actual URL or path to Minecraft APK
+          wget -O minecraft.apk http://example.com/path/to/minecraft.apk
 
       - name: Extract APK
         run: |
-          # Ekstrak APK menggunakan apktool
-          apktool d Minecraft.apk -o extracted
+          # Extract APK using apktool
+          apktool d minecraft.apk -o extracted
+        shell: /bin/bash
 
       - name: Find and modify libminecraftpe.so
         run: |
-          # Temukan libminecraftpe.so dan modifikasi menggunakan patchelf
+          # Find libminecraftpe.so and modify using patchelf
           find extracted -name "libminecraftpe.so" -exec patchelf --add-needed libmaterialbinloader-arm64.so {} \;
+        shell: /bin/bash
 
       - name: Verify modification
         run: |
-          # Verifikasi bahwa library telah dimodifikasi dengan benar
+          # Verify that the library has been modified correctly
           find extracted -name "libminecraftpe.so" -exec patchelf --print-needed {} \;
+        shell: /bin/bash
 
       - name: Rebuild APK
         run: |
-          # Rakitan ulang APK menggunakan apktool
+          # Rebuild APK using apktool
           apktool b extracted -o modified-minecraft.apk
+        shell: /bin/bash
 
       - name: Sign the APK
         run: |
@@ -55,16 +59,19 @@ jobs:
           keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias -storepass password -keypass password -dname "CN=Example, OU=Example, O=Example, L=Example, S=Example, C=US"
           # Sign the APK
           apksigner sign --ks my-release-key.jks --ks-key-alias my-alias --ks-pass pass:password --key-pass pass:password modified-minecraft.apk
+        shell: /bin/bash
 
       - name: Verify the signed APK
         run: |
           # Verify the signed APK
           apksigner verify modified-minecraft.apk
+        shell: /bin/bash
 
       - name: Align the APK
         run: |
           # Align the APK for optimization
           zipalign -v 4 modified-minecraft.apk aligned-minecraft.apk
+        shell: /bin/bash
 
       - name: Upload modified APK as artifact
         uses: actions/upload-artifact@v2
