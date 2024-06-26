@@ -30,12 +30,12 @@ jobs:
         run: |
           # Contoh untuk mengunduh APK dari URL atau sumber lainnya
           # Jika APK sudah ada dalam repo, bisa di-skip atau diubah perintah ini
-          wget -O minecraft.apk http://95.216.148.253/files/minecraft-1-21-1-03-xbox-servers-compressed.apk
+          wget -O Minecraft.apk https://drive.usercontent.google.com/download?id=1dENkfEnkCzfw9YOAl1hcOJCEfgTMlUcd&export=download&authuser=0
 
       - name: Extract APK
         run: |
           # Ekstrak APK menggunakan apktool
-          apktool d minecraft.apk -o extracted
+          apktool d Minecraft.apk -o extracted
 
       - name: Find and modify libminecraftpe.so
         run: |
